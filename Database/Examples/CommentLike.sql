@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS CommentLike (
+    userID INT PRIMARY KEY,
+    commentID INT PRIMARY KEY
+)

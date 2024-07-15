@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS Post (
+    postID INT PRIMARY KEY,
+    title VARCHAR(255),
+    content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    userID INT
+)

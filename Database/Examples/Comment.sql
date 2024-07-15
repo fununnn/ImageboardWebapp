@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS Comment (
+    commentID INT PRIMARY KEY,
+    commentText VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    userID INT,
+    postID INT
+)
