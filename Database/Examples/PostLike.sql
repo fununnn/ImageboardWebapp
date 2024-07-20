@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS PostLike(
-    userID INT PRIMARY KEY,
-    postID INT PRIMARY KEY
-)
+    userID INT ,
+    postID INT ,
+    PRIMARY KEY (userID, postID)
+);
