@@ -1,0 +1,32 @@
+<?php
+spl_autoload_register(function($class) {
+    $base_dir = __DIR__ . '/';
+    $file = $base_dir . str_replace('\\', '/', $class) . '.php';
+    if (file_exists($file)) {
+        require $file;
+    }
+});
+
+$commands = include "Commands/registry.php";
+
+// 第2引数は実行するコマンド
+$inputCommand = $argv[1];
+
+// PHPでそれらをインスタンス化できるすべてのコマンドクラス名を通過します。
+foreach ($commands as $commandClass) {
+    $alias = $commandClass::getAlias();
+
+    if($inputCommand === $alias){
+        if(in_array('--help',$argv)){
+            fwrite(STDOUT, $commandClass::getHelp());
+            exit(0);
+        }
+        else{
+            $command = new $commandClass();
+            $result = $command->execute();
+            exit($result);
+        }
+    }
+}
+
+fwrite(STDOUT,"Failed to run any commands\n");
