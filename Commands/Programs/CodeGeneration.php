@@ -102,8 +102,4 @@ MIGRATION;
 
     return implode(",\n                ", $formattedLines);
     }
-private function pascalCase(string $string): string{
-    return str_replace(' ', '', ucwords(str_replace('_', ' ', 
-$string)));
-}
 }

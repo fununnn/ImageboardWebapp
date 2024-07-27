@@ -61,46 +61,66 @@ class Migrate extends AbstractCommand
     {
         $this->log("Running migrations...");
 
-        $lastMigration = $this->getLastMigration();
-        $allMigrations = $this->getAllMigrationFiles();
-        $startIndex = ($lastMigration) ? array_search($lastMigration, $allMigrations) + 1 : 0;
+        $mysqli = new MySQLWrapper();
+        $mysqli->begin_transaction();
 
-        for ($i = $startIndex; $i < count($allMigrations); $i++) {
-            $filename = $allMigrations[$i];
+        try {
+            $lastMigration = $this->getLastMigration();
+            $allMigrations = $this->getAllMigrationFiles();
+            $startIndex = ($lastMigration) ? array_search($lastMigration, $allMigrations) + 1 : 0;
 
-            $this->log("Processing file: " . $filename); // デバッグ情報
+            for ($i = $startIndex; $i < count($allMigrations); $i++) {
+                $filename = $allMigrations[$i];
 
-            include_once($filename);
+                $this->log("Processing file: " . $filename);
 
-            $migrationClass = $this->getClassnameFromMigrationFilename($filename);
+                include_once($filename);
 
-            $this->log("Migration class: " . $migrationClass); // デバッグ情報
+                $migrationClass = $this->getClassnameFromMigrationFilename($filename);
 
-            $migration = new $migrationClass();
+                $this->log("Migration class: " . $migrationClass);
 
-            $this->log(sprintf("Processing up migration for %s", $migrationClass));
-            $queries = $migration->up();
+                if (!class_exists($migrationClass)) {
+                    throw new \Exception("Migration class {$migrationClass} not found in file {$filename}");
+                }
 
-            $this->log("Queries: " . print_r($queries, true)); // デバッグ情報
+                $migration = new $migrationClass();
 
-            if (empty($queries)) throw new \Exception("Must have queries to run for . " . $migrationClass);
+                $this->log(sprintf("Processing up migration for %s", $migrationClass));
+                $queries = $migration->up();
 
-            $this->processQueries($queries);
-            $this->insertMigration($filename);
+                $this->log("Queries: " . print_r($queries, true));
+
+                if (empty($queries)) {
+                    throw new \Exception("No queries to run for " . $migrationClass);
+                }
+
+                $this->processQueries($queries);
+                $this->insertMigration($filename);
+            }
+
+            $mysqli->commit();
+            $this->log("Migration ended successfully.\n");
+        } catch (\Exception $e) {
+            $mysqli->rollback();
+            $this->log("Migration failed: " . $e->getMessage());
+            $this->log("Rolling back all changes.");
+            throw $e;
         }
-
-        $this->log("Migration ended...\n");
     }
 
-    private function getClassnameFromMigrationFilename(string $filename): string
-    {
-        $baseName = basename($filename, '.php');
-        $parts = explode('_', $baseName);
-        $className = end($parts);  // 最後の部分を取得（例：Category）
-        $className = $this->pascalCase($className);  // PascalCase に変換
-
-        return sprintf("%s\Create%sTable", 'Database\Migrations', $className);
-    }
+private function getClassnameFromMigrationFilename(string $filename): string
+{
+    $baseName = basename($filename, '.php');
+    $parts = explode('_', $baseName);
+    
+    // タイムスタンプ部分を除去
+    array_shift($parts); // 日付を削除
+    array_shift($parts); // 時間を削除
+    
+    $className = implode('', array_map('ucfirst', $parts));
+    return sprintf("%s\Create%sTable", 'Database\Migrations', $className);
+}
 
     private function getLastMigration(): ?string
     {
@@ -139,7 +159,7 @@ class Migrate extends AbstractCommand
         foreach ($queries as $query) {
             $result = $mysqli->query($query);
             if ($result === false) {
-                throw new \Exception(sprintf("Query {%s} failed.", $query));
+                throw new \Exception(sprintf("Query failed: %s\nError: %s", $query, $mysqli->error));
             } else {
                 $this->log('Ran query: ' . $query);
             }
@@ -167,24 +187,27 @@ class Migrate extends AbstractCommand
         $statement->close();
     }
 
-    private function rollback(int $n = 1): void {
-        $this->log("Rolling back {$n} migration(s)...");
+private function rollback(int $n = 1): void {
+    $this->log("Rolling back {$n} migration(s)...");
 
+    $mysqli = new MySQLWrapper();
+    $mysqli->begin_transaction();
+
+    try {
         $lastMigration = $this->getLastMigration();
-        $allMigrations = $this->getAllMigrationFiles();
+        $allMigrations = $this->getAllMigrationFiles('desc');  // 降順で取得
 
         // ソートされたリストで最後のマイグレーションのインデックスを探します
         $lastMigrationIndex = array_search($lastMigration, $allMigrations);
 
         // 最後のマイグレーションが見つかったことを確認します
         if ($lastMigrationIndex === false) {
-            $this->log("Could not find the last migration ran: " . $lastMigration);
-            return;
+            throw new \Exception("Could not find the last migration ran: " . $lastMigration);
         }
 
         $count = 0;
         // 毎回、マイグレーションのダウン関数を実行します。
-        for ($i = $lastMigrationIndex; $count < $n && $i >= 0; $i--) {
+        for ($i = $lastMigrationIndex; $count < $n && $i < count($allMigrations); $i++) {
             $filename = $allMigrations[$i];
 
             $this->log("Rolling back: {$filename}");
@@ -192,18 +215,32 @@ class Migrate extends AbstractCommand
             include_once($filename);
 
             $migrationClass = $this->getClassnameFromMigrationFilename($filename);
+            
+            if (!class_exists($migrationClass)) {
+                throw new \Exception("Migration class {$migrationClass} not found in file {$filename}");
+            }
+
             $migration = new $migrationClass();
 
             $queries = $migration->down();
-            if (empty($queries)) throw new \Exception("Must have queries to run for " . $migrationClass);
+            if (empty($queries)) {
+                throw new \Exception("No queries to run for rollback in " . $migrationClass);
+            }
 
             $this->processQueries($queries);
             $this->removeMigration($filename);
             $count++;
         }
 
-        $this->log("Rollback completed.\n");
+        $mysqli->commit();
+        $this->log("Rollback completed successfully.\n");
+    } catch (\Exception $e) {
+        $mysqli->rollback();
+        $this->log("Rollback failed: " . $e->getMessage());
+        $this->log("Rolling back all changes.");
+        throw $e;
     }
+}
     private function removeMigration(string $filename): void {
     $mysqli = new MySQLWrapper();
     
