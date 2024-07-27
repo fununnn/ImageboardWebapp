@@ -54,13 +54,41 @@ private function getMigrationContent(string $tableName): string
 {
     $className = $this->pascalCase($tableName);
     $tableStructure = $this->getTableStructure($tableName);
+    
+    // CREATE TABLE ステートメントがない場合は、特殊な形式で返す
+    if (strpos($tableStructure, 'CREATE TABLE') === false) {
+        return <<<MIGRATION
+<?php
+namespace Database\\Migrations;
+use Database\\SchemaMigration;
 
+class {$className} implements SchemaMigration
+{
+    public function up(): array
+    {
+        return [
+            "{$tableStructure}"
+        ];
+    }
+
+    public function down(): array
+    {
+        // Implement the down migration if necessary
+        return [
+            // Add down migration SQL here
+        ];
+    }
+}
+MIGRATION;
+    }
+
+    // 通常のCREATE TABLE の場合は既存の形式を使用
     return <<<MIGRATION
 <?php
 namespace Database\\Migrations;
 use Database\\SchemaMigration;
 
-class Create{$className}Table implements SchemaMigration
+class {$className} implements SchemaMigration
 {
     public function up(): array
     {
@@ -81,25 +109,26 @@ class Create{$className}Table implements SchemaMigration
 MIGRATION;
 }
 
-    private function getTableStructure(string $tableName): string
+private function getTableStructure(string $tableName): string
 {
     $sqlFilePath = sprintf("%s/../../Database/Examples/%s.sql", __DIR__, $tableName);
     if (!file_exists($sqlFilePath)) {
         throw new \Exception("SQL file for table {$tableName} not found.");
     }
-
+    
     $sqlContent = file_get_contents($sqlFilePath);
-    preg_match('/CREATE TABLE.*?\((.*?)\);/s', $sqlContent, $matches);
-    if (empty($matches[1])) {
-        throw new \Exception("Could not parse SQL file for table {$tableName}.");
+    
+    // CREATE TABLE ステートメントを探す
+    if (preg_match('/CREATE TABLE.*?\((.*?)\);/s', $sqlContent, $matches)) {
+        $tableStructure = trim($matches[1]);
+        $lines = explode(",", $tableStructure);
+        $formattedLines = array_map(function($line) {
+            return trim($line);
+        }, $lines);
+        return implode(",\n                ", $formattedLines);
     }
-
-    $tableStructure = trim($matches[1]);
-    $lines = explode(",", $tableStructure);
-    $formattedLines = array_map(function($line) {
-        return trim($line);
-    }, $lines);
-
-    return implode(",\n                ", $formattedLines);
-    }
+    
+    // CREATE TABLE が見つからない場合は、SQL全体を返す
+    return $sqlContent;
+}
 }
