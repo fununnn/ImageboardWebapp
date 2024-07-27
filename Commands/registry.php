@@ -5,4 +5,5 @@ return [
     Commands\Programs\DbWipe::class,
     Commands\Programs\BookSearch::class,
     Commands\Programs\GenerateCommands::class, 
+    Commands\Programs\DatabaseBackup::class,
 ];
