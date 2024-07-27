@@ -30,34 +30,54 @@ try {
         REFERENCES User(userID);
 
         ALTER TABLE Comment
-        ADD CONSTRAINT fk_userID_Comment
+        ADD CONSTRAINT  fk_userID_Comment
         FOREIGN KEY (userID)
         REFERENCES User(userID);
 
         ALTER TABLE Comment
-        ADD CONSTRAINT fk_postID_Comment
+        ADD CONSTRAINT  fk_postID_Comment
         FOREIGN KEY (postID)
         REFERENCES Post(postID);
 
         ALTER TABLE PostLike
-        ADD CONSTRAINT fk_userID_PostLike
+        ADD CONSTRAINT  fk_userID_PostLike
         FOREIGN KEY (userID)
         REFERENCES User(userID);
 
         ALTER TABLE PostLike
-        ADD CONSTRAINT fk_PostID_PostLike
+        ADD CONSTRAINT  fk_PostID_PostLike
         FOREIGN KEY (postID)
         REFERENCES Post(postID);
 
         ALTER TABLE CommentLike
-        ADD CONSTRAINT fk_userID_CommentLike
+        ADD CONSTRAINT  fk_userID_CommentLike
         FOREIGN KEY (userID)
         REFERENCES User(userID);
 
         ALTER TABLE CommentLike
-        ADD CONSTRAINT fk_commentID_CommentLike
+        ADD CONSTRAINT  fk_commentID_CommentLike
         FOREIGN KEY (commentID)
         REFERENCES Comment(commentID);
+
+        ALTER TABLE UserSetting
+        ADD CONSTRAINT  fk_userID_UserSetting
+        FOREIGN KEY (userID)
+        REFERENCES User(userID);
+
+        ALTER TABLE Post
+        ADD CONSTRAINT  fk_CategoryID_Post
+        FOREIGN KEY (CategoryID)
+        REFERENCES Category(categoryID);
+
+        ALTER TABLE PostTag
+        ADD CONSTRAINT  fk_postID_PostTag
+        FOREIGN KEY (postID)
+        REFERENCES Post(postID);
+
+        ALTER TABLE PostTag
+        ADD CONSTRAINT  fk_tagID_PostTag
+        FOREIGN KEY (tagID)
+        REFERENCES Tag(tagID);
     ";
 
     $mysqli->multi_query($fk_add_query);

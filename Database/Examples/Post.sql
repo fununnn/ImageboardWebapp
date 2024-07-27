@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS Post (
     content TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
-    userID INT
+    userID INT,
+    CategoryID INT
 );
