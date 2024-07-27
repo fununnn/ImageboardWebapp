@@ -12,8 +12,8 @@ abstract class AbstractCommand implements Command{
     public function __construct(){
         $this->setUpArgsMap();
     }
-private function setUpArgsMap(): void
-{
+    private function setUpArgsMap(): void
+    {
     $args = $GLOBALS['argv'];
     $startIndex = array_search($this->getAlias(), $args);
     if ($startIndex === false) {
@@ -79,59 +79,65 @@ private function setUpArgsMap(): void
     }
 
     $this->log(json_encode($this->argsMap));
-}
-
-public static function getHelp(): string
-{
-    $helpString = "Command: " . static::getAlias() . 
-(static::isCommandValueRequired()?" {value}":"") . PHP_EOL;
-
-    $arguments = static::getArguments();
-    if(empty($arguments)) return $helpString;
-
-    $helpString .= "Arguments:" . PHP_EOL;
-
-    foreach ($arguments as $argument) {
-        $helpString .= "  --" . $argument->getArgument();  // long argument name
-        if ($argument->isShortAllowed()) {
-            $helpString .= " (-" . $argument->getArgument()[0] . ")";  // short argument name
-        }
-        $helpString .= ": " . $argument->getDescription();
-        $helpString .= $argument->isRequired() ? " (Required)" : " (Optional)";
-        $helpString .= PHP_EOL;
     }
-    return $helpString;
-}
 
-public static function getAlias(): string
-{
-    // staticはselfと比べて遅延バインディングを行い、子クラスが$aliasをオーバーライドするときの値を使用します。
-    // selfは常にこのクラスの値($alias = null)を使用します。
-    return static::$alias !== null ? static::$alias : static::class;
-}
+    public static function getHelp(): string
+    {
+        $helpString = "Command: " . static::getAlias() . 
+    (static::isCommandValueRequired()?" {value}":"") . PHP_EOL;
 
-public static function isCommandValueRequired(): bool{
-    return static::$requiredCommandValue;
-}
+        $arguments = static::getArguments();
+        if(empty($arguments)) return $helpString;
 
-public function getCommandValue(): string{
-    return $this->argsMap[static::getAlias()]??"";
-}
+        $helpString .= "Arguments:" . PHP_EOL;
 
-// 引数の値の文字列を返し、存在するが値が設定されていない場合はtrue、存在しない場合はfalseを返します。
-public function getArgumentValue(string $arg): bool|string
-{
-    return $this->argsMap[$arg];
-}
+        foreach ($arguments as $argument) {
+            $helpString .= "  --" . $argument->getArgument();  // long argument name
+            if ($argument->isShortAllowed()) {
+                $helpString .= " (-" . $argument->getArgument()[0] . ")";  // short argument name
+            }
+            $helpString .= ": " . $argument->getDescription();
+            $helpString .= $argument->isRequired() ? " (Required)" : " (Optional)";
+            $helpString .= PHP_EOL;
+        }
+        return $helpString;
+    }
 
-// コマンドにログを取る方法を提供します。
-protected function log(string $info): void
-{
-    fwrite(STDOUT, $info . PHP_EOL);
-}
+    public static function getAlias(): string
+    {
+        // staticはselfと比べて遅延バインディングを行い、子クラスが$aliasをオーバーライドするときの値を使用します。
+        // selfは常にこのクラスの値($alias = null)を使用します。
+        return static::$alias !== null ? static::$alias : static::class;
+    }
 
-/** @return Argument[] */
-public abstract static function getArguments(): array;
+    public static function isCommandValueRequired(): bool{
+        return static::$requiredCommandValue;
+    }
 
-public abstract function execute(): int;
+    public function getCommandValue(): string{
+        return $this->argsMap[static::getAlias()]??"";
+    }
+
+    // 引数の値の文字列を返し、存在するが値が設定されていない場合はtrue、存在しない場合はfalseを返します。
+    public function getArgumentValue(string $arg): bool|string
+    {
+        return $this->argsMap[$arg];
+    }
+
+    // コマンドにログを取る方法を提供します。
+    protected function log(string $info): void
+    {
+        fwrite(STDOUT, $info . PHP_EOL);
+    }
+
+    /** @return Argument[] */
+    public abstract static function getArguments(): array;
+
+    public abstract function execute(): int;
+
+    protected static function pascalCase(string $string): string
+    {
+        return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
+    }
+
 }

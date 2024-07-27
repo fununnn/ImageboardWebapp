@@ -94,12 +94,12 @@ class Migrate extends AbstractCommand
 
     private function getClassnameFromMigrationFilename(string $filename): string
     {
-        // マイグレーションのクラス名を正規表現で取得します
-        if (preg_match('/([^_]+)\.php$/', $filename, $matches)) {
-            return sprintf("%s\%s", 'Database\Migrations', $matches[1]);
-        } else {
-            throw new \Exception("Unexpected migration filename format: " . $filename);
-        }
+        $baseName = basename($filename, '.php');
+        $parts = explode('_', $baseName);
+        $className = end($parts);  // 最後の部分を取得（例：Category）
+        $className = $this->pascalCase($className);  // PascalCase に変換
+
+        return sprintf("%s\Create%sTable", 'Database\Migrations', $className);
     }
 
     private function getLastMigration(): ?string
@@ -218,4 +218,5 @@ class Migrate extends AbstractCommand
     
     $statement->close();
     }
+
 }
