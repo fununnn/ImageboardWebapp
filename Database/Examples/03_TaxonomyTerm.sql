@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS TaxonomyTerm (
     taxonomyTypeID INT,
     description TEXT,
     parentTaxonomyTerm INT,
-    FOREIGN KEY (taxonomyTypeID) REFERENCES Taxonomy(taxonomyID),
+    FOREIGN KEY (taxonomyTypeID) REFERENCES Taxonomy(taxonomyID)
 );

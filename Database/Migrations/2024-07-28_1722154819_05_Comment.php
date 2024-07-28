@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreateCommentTable implements SchemaMigration
+class CommentMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -13,7 +14,9 @@ class CreateCommentTable implements SchemaMigration
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
                 userID INT,
-                postID INT
+                postID INT,
+                FOREIGN KEY (userID) REFERENCES User(userID),
+                FOREIGN KEY (postID) REFERENCES Post(postID)
             );"
         ];
     }

@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreateCommentLikeTable implements SchemaMigration
+class CommentLikeMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -21,7 +22,7 @@ class CreateCommentLikeTable implements SchemaMigration
     public function down(): array
     {
         return [
-            "DROP TABLE IF EXISTS 07_CommentLike;"
+            "DROP TABLE IF EXISTS CommentLike;"
         ];
     }
 }

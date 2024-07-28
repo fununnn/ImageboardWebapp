@@ -1,26 +1,28 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class TaxonomyTerm implements SchemaMigration
+class TaxonomyTermMigration implements SchemaMigration
 {
     public function up(): array
     {
         return [
-            "taxonomyTermID INT PRIMARY KEY AUTO_INCREMENT,
+            "CREATE TABLE IF NOT EXISTS TaxonomyTerm (
+                taxonomyTermID INT PRIMARY KEY AUTO_INCREMENT,
                 taxonomyTermName VARCHAR(255) NOT NULL,
                 taxonomyTypeID INT,
                 description TEXT,
                 parentTaxonomyTerm INT,
-                FOREIGN KEY (taxonomyTypeID) REFERENCES Taxonomy(taxonomyID),
+                FOREIGN KEY (taxonomyTypeID) REFERENCES Taxonomy(taxonomyID)
+            );"
         ];
     }
 
     public function down(): array
     {
-        // Implement the down migration if necessary
         return [
-            // Add down migration SQL here
+            "DROP TABLE IF EXISTS TaxonomyTerm;"
         ];
     }
 }

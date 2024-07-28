@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreateUserSettingTable implements SchemaMigration
+class UserSettingMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -20,7 +21,7 @@ class CreateUserSettingTable implements SchemaMigration
     public function down(): array
     {
         return [
-            "DROP TABLE IF EXISTS 09_UserSetting;"
+            "DROP TABLE IF EXISTS UserSetting;"
         ];
     }
 }

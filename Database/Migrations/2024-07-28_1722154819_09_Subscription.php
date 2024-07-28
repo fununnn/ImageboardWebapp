@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreateSubscriptionTable implements SchemaMigration
+class SubscriptionMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -22,7 +23,7 @@ class CreateSubscriptionTable implements SchemaMigration
     public function down(): array
     {
         return [
-            "DROP TABLE IF EXISTS 10_Subscription;"
+            "DROP TABLE IF EXISTS Subscription;"
         ];
     }
 }

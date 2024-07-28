@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreateTaxonomyTable implements SchemaMigration
+class TaxonomyMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -18,7 +19,7 @@ class CreateTaxonomyTable implements SchemaMigration
     public function down(): array
     {
         return [
-            "DROP TABLE IF EXISTS 02_Taxonomy;"
+            "DROP TABLE IF EXISTS Taxonomy;"
         ];
     }
 }
