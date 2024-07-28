@@ -32,27 +32,50 @@
 
 すべてのコマンドは `console` ファイルを通じて実行します。
 
-1. マイグレーションの作成:
+1. SQLファイルの作成:
+   /Database/Examplesの中に、新しく作成したいSQLファイルを作成します。SQLファイルは常に01_〇〇.sqlとします。数字の若い順番にマイグレーションします。次に読むファイルは02_...です。
+   例として、01_User.sqlを作成します。
    ```
-   php console code-gen migration <migration_name>
+   CREATE TABLE IF NOT EXISTS User (
+    userID INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
+    subscription_status VARCHAR(255),
+    subscriptionCreatedAt DATETIME,
+    subscriptionEndAt DATETIME
+);
    ```
-   例: `php console code-gen migration CreateUsersTable`
 
-2. マイグレーションの実行:
+2. マイグレーションの作成:
+   ```
+   php console code-gen migration --name <migration_name>
+   ```
+   例: `php console code-gen migration --name User`
+
+   なお、以下のようにすると全ファイルを一気にマイグレーションできます。
+   ```
+   php console code-gen migration --name all
+   ```
+   
+3. マイグレーションテーブルの初期化:
+   ```
+   php console migrate --init
+   ```
+
+
+4. マイグレーションの実行:
    ```
    php console migrate
    ```
 
-3. ロールバック:
+5. ロールバック:
    ```
    php console migrate --rollback [n]
    ```
    `n` は省略可能で、ロールバックするマイグレーションの数を指定します。
-
-4. マイグレーションテーブルの初期化:
-   ```
-   php console migrate --init
-   ```
 
 ## その他の機能
 
