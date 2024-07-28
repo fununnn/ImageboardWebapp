@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreateUserTable implements SchemaMigration
+class UserMigration implements SchemaMigration
 {
     public function up(): array
     {

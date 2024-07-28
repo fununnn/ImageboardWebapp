@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreatePostLikeTable implements SchemaMigration
+class PostLikeMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -11,7 +12,9 @@ class CreatePostLikeTable implements SchemaMigration
                 userID INT,
                 postID INT,
                 PRIMARY KEY (userID,
-                postID)
+                postID),
+                FOREIGN KEY (userID) REFERENCES User(userID),
+                FOREIGN KEY (postID) REFERENCES Post(postID)
             );"
         ];
     }

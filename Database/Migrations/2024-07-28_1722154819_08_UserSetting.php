@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreateUserSettingTable implements SchemaMigration
+class UserSettingMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -11,7 +12,8 @@ class CreateUserSettingTable implements SchemaMigration
                 entryID INT PRIMARY KEY AUTO_INCREMENT,
                 userID INT,
                 metakey VARCHAR(255),
-                metavalue VARCHAR(255)
+                metavalue VARCHAR(255),
+                FOREIGN KEY (userID) REFERENCES User(userID)
             );"
         ];
     }

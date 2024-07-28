@@ -4,5 +4,7 @@ CREATE TABLE IF NOT EXISTS Comment (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
     userID INT,
-    postID INT
+    postID INT,
+    FOREIGN KEY (userID) REFERENCES User(userID),
+    FOREIGN KEY (postID) REFERENCES Post(postID)
 );

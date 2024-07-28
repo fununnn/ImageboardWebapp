@@ -114,12 +114,15 @@ private function getClassnameFromMigrationFilename(string $filename): string
     $baseName = basename($filename, '.php');
     $parts = explode('_', $baseName);
     
-    // タイムスタンプ部分を除去
+    // タイムスタンプと数字のプレフィックスを除去
     array_shift($parts); // 日付を削除
     array_shift($parts); // 時間を削除
+    if (is_numeric($parts[0])) {
+        array_shift($parts); // 数字のプレフィックスを削除
+    }
     
-    $className = implode('', array_map('ucfirst', $parts));
-    return sprintf("%s\Create%sTable", 'Database\Migrations', $className);
+    $className = implode('', array_map('ucfirst', $parts)) . 'Migration';
+    return sprintf("%s\%s", 'Database\Migrations', $className);
 }
 
     private function getLastMigration(): ?string
@@ -138,33 +141,40 @@ private function getClassnameFromMigrationFilename(string $filename): string
         return null;
     }
 
-    private function getAllMigrationFiles(string $order = 'asc'): array
-    {
-        $directory = sprintf("%s/../../Database/Migrations", __DIR__);
-        $this->log($directory);
+private function getAllMigrationFiles(string $order = 'asc'): array
+{
+    $directory = sprintf("%s/../../Database/Migrations", __DIR__);
+    $this->log($directory);
+    $allFiles = glob($directory . "/*.php");
 
-        $allFiles = glob($directory . "/*.php");
+    // ファイル名全体で自然順ソート
+    sort($allFiles, SORT_NATURAL | SORT_FLAG_CASE);
 
-        usort($allFiles, function ($a, $b) use ($order) {
-            $compareResult = strcmp($a, $b);
-            return ($order === 'desc') ? -$compareResult : $compareResult;
-        });
+    return $order === 'desc' ? array_reverse($allFiles) : $allFiles;
+}
 
-        return $allFiles;
-    }
+private function getFilePrefix(string $filename): string
+{
+    $parts = explode('_', basename($filename));
+    return $parts[2] ?? '';
+}
 
-    private function processQueries(array $queries): void
-    {
-        $mysqli = new MySQLWrapper();
-        foreach ($queries as $query) {
+
+private function processQueries(array $queries): void
+{
+    $mysqli = new MySQLWrapper();
+    foreach ($queries as $query) {
+        try {
             $result = $mysqli->query($query);
             if ($result === false) {
-                throw new \Exception(sprintf("Query failed: %s\nError: %s", $query, $mysqli->error));
-            } else {
-                $this->log('Ran query: ' . $query);
+                throw new \Exception($mysqli->error);
             }
+            $this->log('Ran query: ' . $query);
+        } catch (\Exception $e) {
+            throw new \Exception(sprintf("Query failed: %s\nError: %s", $query, $e->getMessage()));
         }
     }
+}
 
     private function insertMigration(string $filename): void
     {

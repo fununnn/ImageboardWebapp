@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreateCommentLikeTable implements SchemaMigration
+class CommentLikeMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -11,7 +12,9 @@ class CreateCommentLikeTable implements SchemaMigration
                 userID INT,
                 commentID INT,
                 PRIMARY KEY (userID,
-                commentID)
+                commentID),
+                FOREIGN KEY (userID) REFERENCES User(userID),
+                FOREIGN KEY (commentID) REFERENCES Comment(commentID)
             );"
         ];
     }

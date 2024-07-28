@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS Subscription (
+    subscriptionID INT PRIMARY KEY AUTO_INCREMENT,
+    userID INT,
+    subscription VARCHAR(255),
+    subscription_status VARCHAR(255),
+    subscriptionCreatedAt DATETIME,
+    subscriptionEndAt DATETIME,
+    FOREIGN KEY (userID) REFERENCES User(userID)
+);

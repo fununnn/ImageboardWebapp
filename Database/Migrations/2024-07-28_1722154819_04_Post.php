@@ -1,8 +1,9 @@
 <?php
 namespace Database\Migrations;
+
 use Database\SchemaMigration;
 
-class CreatePostTable implements SchemaMigration
+class PostMigration implements SchemaMigration
 {
     public function up(): array
     {
@@ -14,7 +15,9 @@ class CreatePostTable implements SchemaMigration
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
                 userID INT,
-                CategoryID INT
+                CategoryID INT,
+                FOREIGN KEY (userID) REFERENCES User(userID),
+                FOREIGN KEY (CategoryID) REFERENCES TaxonomyTerm(taxonomyTermID)
             );"
         ];
     }
