@@ -45,8 +45,7 @@
     updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
     subscription_status VARCHAR(255),
     subscriptionCreatedAt DATETIME,
-    subscriptionEndAt DATETIME
-);
+    subscriptionEndAt DATETIME);
    ```
 
 2. マイグレーションの作成:
