@@ -25,22 +25,27 @@ abstract class AbstractSeeder implements Seeder {
         $this->conn = $conn;
     }
 
-    public function seed(): void {
+public function seed(): void {
+    $this->conn->begin_transaction();
+    try {
         $data = $this->createRowData();
-
         if ($this->tableName === null) {
             throw new \Exception('Class requires a table name');
         }
         if (empty($this->tableColumns)) {
             throw new \Exception('Class requires columns');
         }
-
         foreach ($data as $row) {
-            // 行を検証し、問題がなければ行を挿入します。
             $this->validateRow($row);
             $this->insertRow($row);
         }
+        $this->conn->commit();
+        echo "Successfully seeded table: {$this->tableName}\n";
+    } catch (\Exception $e) {
+        $this->conn->rollback();
+        echo "Error seeding table {$this->tableName}: " . $e->getMessage() . "\n";
     }
+}
 
     // 各行をtableColumnsと照らし合わせて検証します。
     protected function validateRow(array $row): void {
@@ -68,32 +73,45 @@ abstract class AbstractSeeder implements Seeder {
 
     // 各行をテーブルに挿入します。$tableColumnsはデータタイプとカラム名を取得するために使用されます。
     protected function insertRow(array $row): void {
-        // カラム名を取得します。
-        $columnNames = array_map(function($columnInfo) {
-            return $columnInfo['column_name'];
-        }, $this->tableColumns);
+        try {
+            // カラム名を取得します。
+            $columnNames = array_map(function($columnInfo) {
+                return $columnInfo['column_name'];
+            }, $this->tableColumns);
 
-        // クエリを準備する際、count($row)のプレースホルダー'?'があります。bind_param関数はこれらにデータを挿入します。
-        $placeholders = str_repeat('?, ', count($row) - 1) . '?';
+            // クエリを準備する際、count($row)のプレースホルダー'?'があります。bind_param関数はこれらにデータを挿入します。
+            $placeholders = str_repeat('?, ', count($row) - 1) . '?';
+            $sql = sprintf(
+                'INSERT INTO %s (%s) VALUES (%s)',
+                $this->tableName,
+                implode(',', $columnNames),
+                $placeholders
+            );
 
-        $sql = sprintf(
-            'INSERT INTO %s (%s) VALUES (%s)',
-            $this->tableName,
-            implode(',', $columnNames),
-            $placeholders
-        );
+            $stmt = $this->conn->prepare($sql);
+            if (!$stmt) {
+                throw new \Exception("Failed to prepare statement: " . $this->conn->error);
+            }
 
-        $stmt = $this->conn->prepare($sql);
+            // implodeは配列を一つの文字列に結合し、その文字列を返します。
+            $dataTypes = implode('', array_map(function($columnInfo) {
+                return static::AVAILABLE_TYPES[$columnInfo['data_type']];
+            }, $this->tableColumns));
 
-        // implodeは配列を一つの文字列に結合し、その文字列を返します。
-        $dataTypes = implode('', array_map(function($columnInfo) {
-            return static::AVAILABLE_TYPES[$columnInfo['data_type']];
-        }, $this->tableColumns));
+            // bind paramsは文字の配列（文字列）を取り、それぞれに値を挿入します。
+            // 例：$stmt->bind_param('iss', ...array_values([1, 'John', 'john@example.com'])) は、ステートメントに整数、文字列、文字列を挿入します。
+            $stmt->bind_param($dataTypes, ...array_values($row));
+            
+            if (!$stmt->execute()) {
+                throw new \Exception("Failed to execute statement: " . $stmt->error);
+            }
 
-        // bind paramsは文字の配列（文字列）を取り、それぞれに値を挿入します。
-        // 例：$stmt->bind_param('iss', ...array_values([1, 'John', 'john@example.com'])) は、ステートメントに整数、文字列、文字列を挿入します。
-        $stmt->bind_param($dataTypes, ...array_values($row));
-
-        $stmt->execute();
+            $stmt->close();
+        } catch (\Exception $e) {
+            echo "Error inserting row into {$this->tableName}: " . $e->getMessage() . "\n";
+            echo "SQL: " . $sql . "\n";
+            echo "Data: " . json_encode($row) . "\n";
+            // オプション: throw $e; // エラーを再スローして処理を停止
+        }
     }
 }

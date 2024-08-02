@@ -1,14 +1,11 @@
 <?php
-
 namespace Commands\Programs;
-
 use Commands\AbstractCommand;
 use Database\MySQLWrapper;
 use Database\Seeder;
 
 class Seed extends AbstractCommand
 {
-    // コマンド名を設定します
     protected static ?string $alias = 'seed';
 
     public static function getArguments(): array
@@ -22,27 +19,35 @@ class Seed extends AbstractCommand
         return 0;
     }
 
-    function runAllSeeds(): void {
-        $directoryPath = __DIR__ . '/../../Database/Seeds';
+function runAllSeeds(): void {
+    $directoryPath = __DIR__ . '/../../Database/Seeds';
+    $files = scandir($directoryPath);
+    
+    $seedFiles = array_filter($files, function($file) {
+        return pathinfo($file, PATHINFO_EXTENSION) === 'php';
+    });
+    sort($seedFiles);
 
-        // ディレクトリをスキャンしてすべてのファイルを取得します。
-        $files = scandir($directoryPath);
+    foreach ($seedFiles as $file) {
+        echo "Processing file: " . $file . PHP_EOL;
+        $baseClassName = pathinfo($file, PATHINFO_FILENAME);
+        $className = 'Database\\Seeds\\' . ucfirst(preg_replace('/^\d+_/', '', $baseClassName)) . substr($baseClassName, 0, 2);
+        echo "Class name: " . $className . PHP_EOL;
+        
+        if (!class_exists($className)) {
+            require_once $directoryPath . '/' . $file;
+            echo "File loaded: " . $file . PHP_EOL;
+        } else {
+            echo "Class already exists: " . $className . PHP_EOL;
+        }
 
-        foreach ($files as $file) {
-            if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                // ファイル名からクラス名を抽出します。
-                $className = 'Database\Seeds\\' . pathinfo($file, PATHINFO_FILENAME);
-
-                // シードファイルをインクルードします。
-                include_once $directoryPath . '/' . $file;
-
-                if (class_exists($className) && is_subclass_of($className, Seeder::class)) {
-                    $seeder = new $className(new MySQLWrapper());
-                    $seeder->seed();
-                } else {
-                    throw new \Exception('Seeder must be a class that subclasses the seeder interface');
-                }
-            }
+        if (class_exists($className) && is_subclass_of($className, 'Database\\Seeder')) {
+            echo "Seeding: " . $file . PHP_EOL;
+            $seeder = new $className(new \Database\MySQLWrapper());
+            $seeder->seed();
+        } else {
+            echo "Skipping: " . $file . " (not a valid seeder)" . PHP_EOL;
         }
     }
+}
 }
