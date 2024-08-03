@@ -1,3 +1,68 @@
+# コードスニペット共有サービス
+
+これは、Pastebinに似たシンプルなウェブアプリケーションで、ユーザーが簡単にコードスニペットやプレーンテキストを共有できるようにします。
+
+## 特徴
+
+- ユーザーアカウント不要でコードスニペットの作成と共有が可能
+- 様々なプログラミング言語に対応したシンタックスハイライト
+- スニペットの有効期限設定
+- 各スニペットに対するユニークURL生成
+- 共有されたスニペットの閲覧
+
+## 使用技術
+
+- PHP 8.0
+- MySQL
+- HTML/CSS（Bootstrap 5）
+- JavaScript（シンタックスハイライト用Highlight.js）
+
+## インストール
+
+1. リポジトリをクローン：
+   git clone https://github.com/yourusername/code-snippet-sharing.git
+
+2. プロジェクトディレクトリに移動：
+   cd code-snippet-sharing
+
+3. 依存関係のインストール（Composerを使用している場合）：
+   composer install
+
+4. データベースのセットアップ：
+   - MySQLデータベースを作成
+   - `Database/MySQLWrapper.php`のデータベース設定を更新
+   - マイグレーションを実行：
+     php console migrate
+
+5. Webサーバー（Apache、Nginxなど）を設定し、`public`ディレクトリを指すようにする。
+
+6. ウェブブラウザからアプリケーションにアクセス。
+
+## 使用方法
+
+1. ホームページにアクセスして新しいスニペットを作成。
+2. テキストエリアにコードまたはテキストを入力。
+3. プログラミング言語を選択（シンタックスハイライト用）。
+4. 有効期限を選択（任意）。
+5. 「スニペットを作成」をクリックしてユニークURLを生成。
+6. URLを他の人と共有してスニペットを表示。
+
+## アクセスURL
+
+- ホームページ: http://yourdomain.com/
+- スニペット作成: http://yourdomain.com/snippet/create
+- スニペット閲覧: http://yourdomain.com/snippet/view/{unique_id}
+
+
+
+
+
+
+
+
+
+
+
 # BlogBook マイグレーション管理ツール
 
 ## セットアップ

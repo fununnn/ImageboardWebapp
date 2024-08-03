@@ -5,6 +5,7 @@ use Helpers\ValidationHelper;
 use Response\HTTPRenderer;
 use Response\Render\HTMLRenderer;
 use Response\Render\JSONRenderer;
+use Models\Snippets;
 
 return [
     'random/part' => function(): HTTPRenderer {
@@ -58,5 +59,33 @@ return [
         
         $parts = DatabaseHelper::getComputerPartsByPerformance($order, $type);
         return new JSONRenderer($parts);
+    },
+
+    'snippet/create' => function(): HTTPRenderer {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $content = $_POST['content'] ?? '';
+        $language = $_POST['language'] ?? '';
+        $expiration = $_POST['expiration'] ?? null;
+        
+        $uniqueUrl = Models\Snippets::create($content, $language, $expiration);
+        
+        if ($uniqueUrl) {
+            return new JSONRenderer(['success' => true, 'url' => "/snippet/view/{$uniqueUrl}"]);
+        } else {
+            return new JSONRenderer(['success' => false, 'error' => 'Failed to create snippet']);
+        }
+    }
+    
+    return new HTMLRenderer('snippet/create');
+    },
+
+    'snippet/view/{url}' => function(string $url): HTTPRenderer {
+        $snippet = Models\Snippets::getByUrl($url);
+        
+        if ($snippet) {
+            return new HTMLRenderer('snippet/view', ['snippet' => $snippet]);
+        } else {
+            return new HTMLRenderer('snippet/not_found');
+        }
     },
 ];
