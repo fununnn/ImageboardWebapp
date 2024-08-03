@@ -69,74 +69,79 @@ class CodeGeneration extends AbstractCommand
     {
         $sqlDir = sprintf("%s/../../Database/Examples", __DIR__);
         $files = glob($sqlDir . "/*.sql");
+        $this->log("Searching for SQL file: " . $migrationName);
         foreach ($files as $file) {
-            if (stripos(basename($file), $migrationName) !== false) {
+            $filename = pathinfo($file, PATHINFO_FILENAME);
+            $this->log("Checking file: " . $filename);
+            if (strcasecmp(preg_replace('/^\d+_/', '', $filename), $migrationName) === 0) {
+                $this->log("Found matching file: " . $file);
                 return $file;
             }
         }
+        $this->log("No matching SQL file found for: " . $migrationName);
         return null;
     }
 
-private function getMigrationContent(string $tableName, string $prefix): string
-{
-    $className = $this->formatClassName($prefix);
-    $tableStructure = $this->getTableStructure($tableName);
-    
-    // テーブル名から数字のプレフィックスを削除
-    $cleanTableName = preg_replace('/^\d+_/', '', $tableName);
-
-    return <<<MIGRATION
-<?php
-namespace Database\\Migrations;
-
-use Database\\SchemaMigration;
-
-class {$className} implements SchemaMigration
-{
-    public function up(): array
+    private function getMigrationContent(string $tableName, string $prefix): string
     {
-        return [
-            "CREATE TABLE IF NOT EXISTS {$cleanTableName} (
-                {$tableStructure}
-            );"
-        ];
-    }
+        $className = $this->formatClassName($prefix);
+        $tableStructure = $this->getTableStructure($tableName);
+        
+        // テーブル名から数字のプレフィックスを削除
+        $cleanTableName = preg_replace('/^\d+_/', '', $tableName);
 
-    public function down(): array
+        return <<<MIGRATION
+    <?php
+    namespace Database\\Migrations;
+
+    use Database\\SchemaMigration;
+
+    class {$className} implements SchemaMigration
     {
-        return [
-            "DROP TABLE IF EXISTS {$cleanTableName};"
-        ];
-    }
-}
-MIGRATION;
-}
+        public function up(): array
+        {
+            return [
+                "CREATE TABLE IF NOT EXISTS {$cleanTableName} (
+                    {$tableStructure}
+                );"
+            ];
+        }
 
-    private function formatClassName(string $prefix): string
+        public function down(): array
+        {
+            return [
+                "DROP TABLE IF EXISTS {$cleanTableName};"
+            ];
+        }
+    }
+    MIGRATION;
+    }
+
+        private function formatClassName(string $prefix): string
+        {
+            // プレフィックスから数字を削除し、残りの部分をパスカルケースに変換
+            $withoutNumbers = preg_replace('/^\d+_/', '', $prefix);
+            return $this->pascalCase($withoutNumbers) . 'Migration';
+        }
+
+    private function getTableStructure(string $tableName): string
     {
-        // プレフィックスから数字を削除し、残りの部分をパスカルケースに変換
-        $withoutNumbers = preg_replace('/^\d+_/', '', $prefix);
-        return $this->pascalCase($withoutNumbers) . 'Migration';
+        $sqlFilePath = $this->findSqlFile($tableName);
+        if (!$sqlFilePath) {
+            throw new \Exception("SQL file for table {$tableName} not found.");
+        }
+        
+        $sqlContent = file_get_contents($sqlFilePath);
+        
+        if (preg_match('/CREATE TABLE.*?\((.*?)\);/s', $sqlContent, $matches)) {
+            $tableStructure = trim($matches[1]);
+            $lines = explode(",", $tableStructure);
+            $formattedLines = array_map(function($line) {
+                return trim($line);
+            }, $lines);
+            return implode(",\n                ", $formattedLines);
+        }
+        
+        throw new \Exception("Could not parse SQL content for table {$tableName}.");
     }
-
-private function getTableStructure(string $tableName): string
-{
-    $sqlFilePath = $this->findSqlFile($tableName);
-    if (!$sqlFilePath) {
-        throw new \Exception("SQL file for table {$tableName} not found.");
-    }
-    
-    $sqlContent = file_get_contents($sqlFilePath);
-    
-    if (preg_match('/CREATE TABLE.*?\((.*?)\);/s', $sqlContent, $matches)) {
-        $tableStructure = trim($matches[1]);
-        $lines = explode(",", $tableStructure);
-        $formattedLines = array_map(function($line) {
-            return trim($line);
-        }, $lines);
-        return implode(",\n                ", $formattedLines);
-    }
-    
-    throw new \Exception("Could not parse SQL content for table {$tableName}.");
-}
 }
