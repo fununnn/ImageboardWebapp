@@ -61,7 +61,12 @@ return [
     },
 
     'snippet/view/{url}' => function(string $url): HTTPRenderer {
-        $snippet = Models\Snippets::getByUrl($url);
-        return new HTMLRenderer($snippet ? 'snippet/view' : 'snippet/not_found', ['snippet' => $snippet]);
+    $snippet = Models\Snippets::getByUrl($url);
+    
+    if ($snippet) {
+        return new HTMLRenderer('snippet/view', ['snippet' => $snippet]);
+    } else {
+        return new HTMLRenderer('snippet/not_found');
+    }
     },
 ];

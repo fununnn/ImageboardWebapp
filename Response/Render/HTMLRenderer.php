@@ -50,7 +50,8 @@ class HTMLRenderer implements HTTPRenderer
     require $this->getViewPath('layout/footer');
     return ob_get_clean();
     }
-    private function getViewPath(string $path): string{
-    return sprintf("%s/%s/Views/%s.php", __DIR__, '../..', $path);
+    private function getViewPath(string $path): string
+    {
+    return sprintf("%s/Views/%s.php", dirname(__DIR__, 2), $path);
     }
 }

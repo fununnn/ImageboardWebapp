@@ -25,13 +25,22 @@ class Snippets
 
     public static function getByUrl(string $url): ?array
     {
-        $db = new MySQLWrapper();
-        $stmt = $db->prepare("SELECT * FROM Snippets WHERE unique_url = ? AND (expiration IS NULL OR expiration > NOW())");
-        $stmt->bind_param("s", $url);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        return $result->fetch_assoc();
+    error_log("Attempting to get snippet with URL: $url");
+    $db = new MySQLWrapper();
+    $stmt = $db->prepare("SELECT * FROM Snippets WHERE unique_url = ?");
+    $stmt->bind_param("s", $url);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $snippet = $result->fetch_assoc();
+    
+    if ($snippet) {
+        error_log("Snippet found: " . print_r($snippet, true));
+    } else {
+        error_log("No snippet found for URL: $url");
+    }
+    
+    return $snippet;
     }
 
     private static function generateUniqueUrl(): string
