@@ -12,26 +12,22 @@
 </head>
 <body>
     <main class="container mt-5 mb-5">
-        <!-- 内容はここに挿入されます。 -->
+        <!-- 内容 -->
         <div id="content"></div>
     </main>
 
     <footer class="bg-light text-center text-lg-start">
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-            © 2023:
-            <a class="text-dark" href="/">MyComputerPartsStore.com</a>
+            © 2023: <a class="text-dark" href="/">MyComputerPartsStore.com</a>
         </div>
     </footer>
 
     <script>
-        // この関数は、ページがロードされると実行されます。
         document.addEventListener('DOMContentLoaded', function() {
-            // APIエンドポイントにGETリクエストを送信します。
             fetch('http://127.0.0.1:8000/api/parts?id=1')
                 .then(response => response.json())
                 .then(data => {
                     const part = data.part;
-                    // カードHTMLを作成します。
                     const html = `
                         <div class="card" style="width: 18rem;">
                             <div class="card-body">
@@ -49,18 +45,17 @@
                                     <strong>Lifespan:</strong> ${part.lifespan} years<br />
                                 </p>
                                 <p class="card-text"><small class="text-muted">Last updated on ${part.updated_at}</small></p>
-                                </div>
-                                </div>;
+                            </div>
+                        </div>
+                    `;
 
-                            // カードHTMLをページに挿入します
-                            document.getElementById('content').innerHTML = html;
-                            })
-                            .catch(error => {
-                                console.error('There was an error fetching the data:', error);
-                                document.getElementById('content').innerHTML = '<div class="alert alert-danger">An error occurred while fetching data.</div>';
-                    });
+                    document.getElementById('content').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the data:', error);
+                    document.getElementById('content').innerHTML = '<div class="alert alert-danger">An error occurred while fetching data.</div>';
                 });
+        });
     </script>
 </body>
-
 </html>

@@ -11,8 +11,8 @@
 
 <script>
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs' }});
-require(["vs/editor/editor.main"], function() {
-    var editor = monaco.editor.create(document.getElementById('editor'), {
+require(['vs/editor/editor.main'], function() {
+    monaco.editor.create(document.getElementById('editor'), {
         value: <?= json_encode($snippet['content']) ?>,
         language: <?= json_encode($snippet['language']) ?>,
         theme: 'vs-dark',

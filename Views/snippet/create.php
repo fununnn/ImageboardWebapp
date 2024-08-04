@@ -51,26 +51,20 @@ require(["vs/editor/editor.main"], function() {
 
         fetch('/snippet/create', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                'content': content,
-                'language': language,
-                'expiration': expiration
-            })
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ 'content': content, 'language': language, 'expiration': expiration })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 window.location.href = data.url;
             } else {
-                alert('Failed to create snippet: ' + data.error);
+                alert('Failed to create snippet: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while creating the snippet.');
+            alert('An error occurred while creating the snippet: ' + error.message);
         });
     });
 });

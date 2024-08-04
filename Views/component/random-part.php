@@ -1,12 +1,12 @@
 <?php
 use Database\MySQLWrapper;
+
 // データベース接続を初期化します
 $db = new MySQLWrapper();
 try {
     $stmt = $db->prepare("SELECT * FROM Computerparts ORDER BY RAND() LIMIT 1");
     $stmt->execute();
-    $result = $stmt->get_result();
-    $part = $result->fetch_assoc();
+    $part = $stmt->get_result()->fetch_assoc();
 } catch (Exception $e) {
     die("Error fetching random part: " . $e->getMessage());
 }
