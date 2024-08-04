@@ -1,4 +1,4 @@
-![Videotogif](https://github.com/user-attachments/assets/1b4dfbec-d3ea-413b-8825-e5ab36944c16)
+https://github.com/user-attachments/assets/34b2baf1-f5d0-4a95-9d0a-8dca7aa4a44f
 
 # コードスニペット共有サービス
 
