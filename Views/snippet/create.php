@@ -1,32 +1,37 @@
-<div class="row">
-    <div class="col-md-12">
-        <h2>Create New Snippet</h2>
-        <form id="snippetForm">
-            <div class="mb-3">
-                <label for="language" class="form-label">Language</label>
-                <select class="form-select" id="language" name="language">
-                    <option value="plaintext">Plain Text</option>
-                    <option value="javascript">JavaScript</option>
-                    <option value="python">Python</option>
-                    <option value="php">PHP</option>
-                    <!-- 他の言語オプションを追加 -->
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="editor" class="form-label">Code</label>
-                <div id="editor" style="height: 400px; border: 1px solid #ddd;"></div>
-            </div>
-            <div class="mb-3">
-                <label for="expiration" class="form-label">Expiration</label>
-                <select class="form-select" id="expiration" name="expiration">
-                    <option value="">Never</option>
-                    <option value="<?= date('Y-m-d H:i:s', strtotime('+10 minutes')) ?>">10 minutes</option>
-                    <option value="<?= date('Y-m-d H:i:s', strtotime('+1 hour')) ?>">1 hour</option>
-                    <option value="<?= date('Y-m-d H:i:s', strtotime('+1 day')) ?>">1 day</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary">Create Snippet</button>
-        </form>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h2 class="mb-4">Create New Snippet</h2>
+            <form id="snippetForm" class="bg-light p-4 rounded shadow">
+                <div class="mb-3">
+                    <label for="language" class="form-label">Language</label>
+                    <select class="form-select" id="language" name="language">
+                        <option value="plaintext">Plain Text</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="php">PHP</option>
+                        <option value="html">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="sql">SQL</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="editor" class="form-label">Code</label>
+                    <div id="editor" style="height: 400px; border: 1px solid #ddd; border-radius: 4px;"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="expiration" class="form-label">Expiration</label>
+                    <select class="form-select" id="expiration" name="expiration">
+                        <option value="">Never</option>
+                        <option value="<?= date('Y-m-d H:i:s', strtotime('+10 minutes')) ?>">10 minutes</option>
+                        <option value="<?= date('Y-m-d H:i:s', strtotime('+1 hour')) ?>">1 hour</option>
+                        <option value="<?= date('Y-m-d H:i:s', strtotime('+1 day')) ?>">1 day</option>
+                        <option value="<?= date('Y-m-d H:i:s', strtotime('+1 week')) ?>">1 week</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100">Create Snippet</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -36,7 +41,13 @@ require(["vs/editor/editor.main"], function() {
     var editor = monaco.editor.create(document.getElementById('editor'), {
         value: '',
         language: 'plaintext',
-        theme: 'vs-dark'
+        theme: 'vs-dark',
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        fontSize: 14,
+        lineNumbers: 'on',
+        renderLineHighlight: 'all',
+        automaticLayout: true
     });
 
     document.getElementById('language').addEventListener('change', function() {
@@ -59,13 +70,33 @@ require(["vs/editor/editor.main"], function() {
             if (data.success) {
                 window.location.href = data.url;
             } else {
-                alert('Failed to create snippet: ' + (data.error || 'Unknown error'));
+                showAlert('danger', 'Failed to create snippet: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while creating the snippet: ' + error.message);
+            showAlert('danger', 'An error occurred while creating the snippet: ' + error.message);
         });
     });
+
+    function showAlert(type, message) {
+        var alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.querySelector('.col-md-10').insertBefore(alertDiv, document.querySelector('form'));
+    }
 });
 </script>
+
+<style>
+#editor {
+    margin-bottom: 20px;
+}
+.form-label {
+    font-weight: bold;
+}
+</style>

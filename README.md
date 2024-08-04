@@ -1,3 +1,5 @@
+![Videotogif](https://github.com/user-attachments/assets/1b4dfbec-d3ea-413b-8825-e5ab36944c16)
+
 # コードスニペット共有サービス
 
 これは、Pastebinに似たシンプルなウェブアプリケーションで、ユーザーが簡単にコードスニペットやプレーンテキストを共有できるようにします。
