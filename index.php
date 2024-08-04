@@ -4,6 +4,8 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
 spl_autoload_register(function($className) {
     $file = __DIR__ . '/' . str_replace('\\', '/', $className) . '.php';
@@ -16,11 +18,14 @@ spl_autoload_register(function($className) {
 
 $routes = include('Routing/routes.php');
 $path = ltrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+if ($path === '') {
+    $path = '/';  
+}
 error_log("Requested path: $path");
+error_log("Adjusted path: $path");
 
 $matchedRoute = null;
 $params = [];
-
 foreach ($routes as $routePattern => $handler) {
     $pattern = preg_replace('/{([^}]+)}/', '(?P<$1>[^/]+)', $routePattern);
     if (preg_match('#^' . $pattern . '$#', $path, $matches)) {
@@ -33,6 +38,8 @@ foreach ($routes as $routePattern => $handler) {
         break;
     }
 }
+
+error_log("Matched route: " . ($matchedRoute ?? 'None'));
 
 if ($matchedRoute) {
     error_log("Route found: $matchedRoute");
@@ -48,7 +55,7 @@ if ($matchedRoute) {
         }
         
         $content = $renderer->getContent();
-        error_log("Response content: " . substr($content, 0, 100) . "..."); // Log first 100 characters
+        error_log("Response content: " . substr($content, 0, 100) . "..."); // 最初の100文字をログに記録
         echo $content;
     } catch (Exception $e) {
         error_log("Error in route execution: " . $e->getMessage());
@@ -59,4 +66,15 @@ if ($matchedRoute) {
     error_log("No route found for path: $path");
     http_response_code(404);
     echo json_encode(['success' => false, 'error' => 'Not Found']);
+}
+
+// 画像ファイルの直接アクセス処理
+if (preg_match('/^uploads\//', $path)) {
+    $filePath = __DIR__ . '/' . $path;
+    if (file_exists($filePath)) {
+        $mimeType = mime_content_type($filePath);
+        header("Content-Type: $mimeType");
+        readfile($filePath);
+        exit;
+    }
 }
