@@ -234,6 +234,12 @@ https://github.com/user-attachments/assets/34b2baf1-f5d0-4a95-9d0a-8dca7aa4a44f
   php console generate-commands <command_name>
   ```
 
+- cronジョブの設定:
+  ```
+  php console setup:cron --time 00:00
+  ```
+  これにより、毎日午前0時にCleanupOldImagesコマンドが実行されます。
+
 ## ヘルプの表示
 
 各コマンドの詳細なヘルプを表示するには:
