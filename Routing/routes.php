@@ -72,7 +72,7 @@ return [
     },
 
     '/' => function(): HTTPRenderer {
-        return new HTMLRenderer('imagehosting/upload');
+        return new HTMLRenderer('home', []);  // 新しいホームページビューを作成
     },
 
     'upload' => function(): HTTPRenderer {
@@ -84,13 +84,25 @@ return [
     return new HTMLRenderer('imagehosting/upload');
     },
 
-    'media/{type}/{url}' => function(string $type, string $url): HTTPRenderer {
-    if ($type !== 'image') {
-        return new HTMLRenderer('error/404');
-    }
-    $image = Image::getByUrl($url);
+    'media/image/{url}' => function(string $url): HTTPRenderer {
+    error_log("Requested URL: $url");
+    $image = Image::getByUrl('media/image/' . $url);
+    error_log("Image data: " . print_r($image, true));
     if ($image) {
-        return new HTMLRenderer('imagehosting/view', ['image' => $image]);
+        $filePath = realpath(__DIR__ . '/../' . $image['file_path']);
+        error_log("Resolved file path: " . $filePath);
+        if ($filePath && file_exists($filePath)) {
+            $mimeType = mime_content_type($filePath);
+            error_log("MIME type: " . $mimeType);
+            header("Content-Type: " . $mimeType);
+            readfile($filePath);
+            Image::incrementViewCount('media/image/' . $url);
+            exit;
+        } else {
+            error_log("File does not exist: " . $filePath);
+        }
+    } else {
+        error_log("Image not found in database for URL: media/image/" . $url);
     }
     return new HTMLRenderer('error/404');
     },
