@@ -15,7 +15,7 @@ class Image {
         $url = $this->generateUniqueUrl();
 
         // ファイルの保存
-        $uploadDir = 'uploads/';
+        $uploadDir = __DIR__ . '/../uploads/';
         $filename = $url . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
         $filePath = $uploadDir . $filename;
         
@@ -25,7 +25,7 @@ class Image {
 
         // データベースへの登録
         $db = new MySQLWrapper();
-        $stmt = $db->prepare("INSERT INTO images (url, file_path) VALUES (?, ?)");
+        $stmt = $db->prepare("INSERT INTO Images (url, file_path) VALUES (?, ?)");
         $stmt->bind_param("ss", $url, $filePath);
         
         if ($stmt->execute()) {
@@ -37,7 +37,7 @@ class Image {
 
     public static function getByUrl($url) {
         $db = new MySQLWrapper();
-        $stmt = $db->prepare("SELECT * FROM images WHERE url = ?");
+        $stmt = $db->prepare("SELECT * FROM Images WHERE url = ?");
         $stmt->bind_param("s", $url);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
@@ -45,14 +45,14 @@ class Image {
 
     public static function delete($url) {
         $db = new MySQLWrapper();
-        $stmt = $db->prepare("SELECT file_path FROM images WHERE url = ?");
+        $stmt = $db->prepare("SELECT file_path FROM Images WHERE url = ?");
         $stmt->bind_param("s", $url);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
 
         if ($result) {
             unlink($result['file_path']);
-            $stmt = $db->prepare("DELETE FROM images WHERE url = ?");
+            $stmt = $db->prepare("DELETE FROM Images WHERE url = ?");
             $stmt->bind_param("s", $url);
             if ($stmt->execute()) {
                 return ['success' => true];

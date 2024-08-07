@@ -3,6 +3,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// デバッグ情報の追加
+error_log("Document Root: " . $_SERVER['DOCUMENT_ROOT']);
+error_log("Script Filename: " . $_SERVER['SCRIPT_FILENAME']);
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
@@ -17,6 +21,7 @@ spl_autoload_register(function($className) {
 });
 
 $routes = include('Routing/routes.php');
+
 $path = ltrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 if ($path === '') {
     $path = '/';  
@@ -59,6 +64,7 @@ if ($matchedRoute) {
         echo $content;
     } catch (Exception $e) {
         error_log("Error in route execution: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
         http_response_code(500);
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }

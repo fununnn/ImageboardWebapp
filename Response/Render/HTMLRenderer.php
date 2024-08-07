@@ -52,6 +52,8 @@ class HTMLRenderer implements HTTPRenderer
     }
     private function getViewPath(string $path): string
     {
-    return sprintf("%s/Views/%s.php", dirname(__DIR__, 2), $path);
+    $fullPath = sprintf("%s/Views/%s.php", dirname(__DIR__, 2), $path);
+    error_log("Full view path: " . $fullPath);
+    return $fullPath;
     }
 }

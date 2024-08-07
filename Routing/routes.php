@@ -71,7 +71,7 @@ return [
         }
     },
 
-    '' => function(): HTTPRenderer {
+    '/' => function(): HTTPRenderer {
         return new HTMLRenderer('imagehosting/upload');
     },
 
