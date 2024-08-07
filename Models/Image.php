@@ -5,34 +5,39 @@ use Helpers\ValidationHelper;
 
 class Image {
     public function upload($file) {
-        // ファイルのバリデーション
-        $validationResult = ValidationHelper::validateImage($file);
-        if (!$validationResult['valid']) {
-            return ['success' => false, 'error' => $validationResult['error']];
-        }
+    // ファイルのバリデーション
+    $validationResult = ValidationHelper::validateImage($file);
+    if (!$validationResult['valid']) {
+        return ['success' => false, 'error' => $validationResult['error']];
+    }
 
-        // 一意なURLの生成
-        $url = $this->generateUniqueUrl();
+    // 一意なURLの生成
+    $uniqueId = $this->generateUniqueUrl();
+    $url = 'media/image/' . $uniqueId;
 
-        // ファイルの保存
-        $uploadDir = __DIR__ . '/../uploads/';
-        $filename = $url . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filePath = $uploadDir . $filename;
-        
-        if (!move_uploaded_file($file['tmp_name'], $filePath)) {
-            return ['success' => false, 'error' => 'Failed to save file'];
-        }
+    // ファイルの保存
+    $uploadDir = __DIR__ . '/../uploads/media/image/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
 
-        // データベースへの登録
-        $db = new MySQLWrapper();
-        $stmt = $db->prepare("INSERT INTO Images (url, file_path) VALUES (?, ?)");
-        $stmt->bind_param("ss", $url, $filePath);
-        
-        if ($stmt->execute()) {
-            return ['success' => true, 'url' => $url];
-        } else {
-            return ['success' => false, 'error' => 'Failed to save to database'];
-        }
+    $filename = $uniqueId . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filePath = $uploadDir . $filename;
+
+    if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+        return ['success' => false, 'error' => 'Failed to save file'];
+    }
+
+    // データベースへの登録
+    $db = new MySQLWrapper();
+    $stmt = $db->prepare("INSERT INTO Images (url, file_path) VALUES (?, ?)");
+    $stmt->bind_param("ss", $url, $filePath);
+
+    if ($stmt->execute()) {
+        return ['success' => true, 'url' => $url];
+    } else {
+        return ['success' => false, 'error' => 'Failed to save to database'];
+    }
     }
 
     public static function getByUrl($url) {
