@@ -6,7 +6,7 @@ use Exceptions\ReadAndParseEnvException;
 
 class UploadLimiter {
     private $db;
-    private $limit = 10; // 1時間あたりの制限
+    private $limit = 1000; // 1時間あたりの制限
     private $timeWindow = 3600; // 1時間（秒）
 
     public function __construct() {
@@ -25,5 +25,11 @@ class UploadLimiter {
         $stmt = $this->db->prepare("INSERT INTO Uploads (ip, timestamp) VALUES (?, NOW())");
         $stmt->bind_param("s", $ip);
         $stmt->execute();
+    }
+    public function getRateLimit($ip) {
+    $stmt = $this->db->prepare("SELECT COUNT(*) FROM uploads WHERE ip = ? AND timestamp > NOW() - INTERVAL 1 MINUTE");
+    $stmt->bind_param("s", $ip);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_row()[0];
     }
 }
