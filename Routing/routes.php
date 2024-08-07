@@ -76,20 +76,23 @@ return [
     },
 
     'upload' => function(): HTTPRenderer {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $image = new Image();
-            $result = $image->upload($_FILES['image']);
-            return new JSONRenderer($result);
-        }
-        return new HTMLRenderer('error/405');
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $image = new Image();
+        $result = $image->upload($_FILES['image']);
+        return new JSONRenderer($result);
+    }
+    return new HTMLRenderer('imagehosting/upload');
     },
 
-    'image/{url}' => function(string $url): HTTPRenderer {
-        $image = Image::getByUrl($url);
-        if ($image) {
-            return new HTMLRenderer('imagehosting/view', ['image' => $image]);
-        }
+    'media/{type}/{url}' => function(string $type, string $url): HTTPRenderer {
+    if ($type !== 'image') {
         return new HTMLRenderer('error/404');
+    }
+    $image = Image::getByUrl($url);
+    if ($image) {
+        return new HTMLRenderer('imagehosting/view', ['image' => $image]);
+    }
+    return new HTMLRenderer('error/404');
     },
 
     'delete/{url}' => function(string $url): HTTPRenderer {
