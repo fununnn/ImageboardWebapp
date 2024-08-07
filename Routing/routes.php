@@ -101,5 +101,12 @@ return [
             return new JSONRenderer($result);
         }
         return new HTMLRenderer('error/405');
+    },
+        // routes.php の末尾に以下を追加
+    '404' => function(): HTTPRenderer {
+        return new HTMLRenderer('error/404');
+    },
+    '500' => function(): HTTPRenderer {
+        return new HTMLRenderer('error/500');
     }
 ];
