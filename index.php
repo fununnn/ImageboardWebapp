@@ -21,11 +21,11 @@ spl_autoload_register(function($className) {
 });
 
 $routes = include('Routing/routes.php');
-
 $path = ltrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 if ($path === '') {
     $path = '/';  
 }
+
 error_log("Requested path: $path");
 error_log("Adjusted path: $path");
 
@@ -46,11 +46,13 @@ foreach ($routes as $routePattern => $handler) {
 
 error_log("Matched route: " . ($matchedRoute ?? 'None'));
 
+// 変更: ルートが存在するかチェックする部分を修正
 if ($matchedRoute) {
     error_log("Route found: $matchedRoute");
     try {
         $renderer = $routes[$matchedRoute](...$params);
         
+        // 変更: ヘッダー設定のロジックを更新
         foreach ($renderer->getFields() as $name => $value) {
             $sanitized_value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
             if ($sanitized_value !== $value) {
