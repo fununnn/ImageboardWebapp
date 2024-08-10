@@ -11,24 +11,64 @@ class ComposerStaticInit662aedcc6781129fa81bbdd533343456
     );
 
     public static $prefixLengthsPsr4 = array (
+        'R' => 
+        array (
+            'Response\\' => 9,
+        ),
         'P' => 
         array (
             'Psr\\Container\\' => 14,
+        ),
+        'M' => 
+        array (
+            'Models\\' => 7,
+        ),
+        'H' => 
+        array (
+            'Helpers\\' => 8,
         ),
         'F' => 
         array (
             'Faker\\' => 6,
         ),
+        'D' => 
+        array (
+            'Database\\' => 9,
+        ),
+        'C' => 
+        array (
+            'Commands\\' => 9,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Response\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Response',
+        ),
         'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
+        'Models\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Models',
+        ),
+        'Helpers\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Helpers',
+        ),
         'Faker\\' => 
         array (
             0 => __DIR__ . '/..' . '/fakerphp/faker/src/Faker',
+        ),
+        'Database\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Database',
+        ),
+        'Commands\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Commands',
         ),
     );
 

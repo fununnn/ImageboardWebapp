@@ -6,6 +6,11 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Response\\' => array($baseDir . '/Response'),
     'Psr\\Container\\' => array($vendorDir . '/psr/container/src'),
+    'Models\\' => array($baseDir . '/Models'),
+    'Helpers\\' => array($baseDir . '/Helpers'),
     'Faker\\' => array($vendorDir . '/fakerphp/faker/src/Faker'),
+    'Database\\' => array($baseDir . '/Database'),
+    'Commands\\' => array($baseDir . '/Commands'),
 );

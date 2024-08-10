@@ -1,11 +1,14 @@
 {
     "require": {
         "fakerphp/faker": "^1.23"
-    }
-        "autoload": {
+    },
+    "autoload": {
         "psr-4": {
             "Database\\": "Database/",
-            "Commands\\": "Commands/"
+            "Commands\\": "Commands/",
+            "Helpers\\": "Helpers/",
+            "Response\\": "Response/",
+            "Models\\": "Models/"
         }
     }
 }
