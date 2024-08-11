@@ -11,12 +11,16 @@ class PostDAOImpl implements PostDAO
     public function create(Post $postData): bool
     {
         $mysqli = DatabaseManager::getMysqliConnection();
-        $query = "INSERT INTO Posts (reply_to_id, subject, content) VALUES (?, ?, ?)";
-        return $mysqli->prepareAndExecute($query, 'iss', [
+        $query = "INSERT INTO Posts (reply_to_id, subject, content, image_path) VALUES (?, ?, ?, ?)";
+        $result = $mysqli->prepareAndExecute($query, 'isss', [
             $postData->getReplyToId(),
             $postData->getSubject(),
-            $postData->getContent()
+            $postData->getContent(),
+            $postData->getImagePath()
         ]);
+        error_log("Post creation result: " . ($result ? "success" : "failure"));
+        error_log("Image path: " . ($postData->getImagePath() ?? "null"));
+        return $result;
     }
 
     public function getById(int $id): ?Post
@@ -29,10 +33,11 @@ class PostDAOImpl implements PostDAO
     public function update(Post $postData): bool
     {
         $mysqli = DatabaseManager::getMysqliConnection();
-        $query = "UPDATE Posts SET subject = ?, content = ? WHERE post_id = ?";
-        return $mysqli->prepareAndExecute($query, 'ssi', [
+        $query = "UPDATE Posts SET subject = ?, content = ?, image_path = ? WHERE post_id = ?";
+        return $mysqli->prepareAndExecute($query, 'sssi', [
             $postData->getSubject(),
             $postData->getContent(),
+            $postData->getImagePath(),
             $postData->getId()
         ]);
     }
@@ -72,7 +77,8 @@ class PostDAOImpl implements PostDAO
             subject: $data['subject'],
             content: $data['content'],
             createdAt: $data['created_at'],
-            updatedAt: $data['updated_at']
+            updatedAt: $data['updated_at'],
+            imagePath: $data['image_path']
         );
     }
 }

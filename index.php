@@ -76,7 +76,24 @@ if ($matchedRoute) {
     echo json_encode(['success' => false, 'error' => 'Not Found']);
 }
 
-// 画像ファイルの直接アクセス処理
+// 静的ファイルとアップロードされた画像の処理
+$staticExtensions = ['css', 'js', 'jpg', 'jpeg', 'png', 'gif'];
+$requestedFile = __DIR__ . '/public/' . $path;
+$uploadedFile = __DIR__ . '/' . $path;
+
+if (file_exists($requestedFile) || file_exists($uploadedFile)) {
+    $fileToServe = file_exists($requestedFile) ? $requestedFile : $uploadedFile;
+    $fileExtension = pathinfo($fileToServe, PATHINFO_EXTENSION);
+
+    if (in_array($fileExtension, $staticExtensions)) {
+        $mimeType = mime_content_type($fileToServe);
+        header("Content-Type: $mimeType");
+        readfile($fileToServe);
+        exit;
+    }
+}
+
+// アップロードされた画像ファイルの処理
 if (preg_match('/^uploads\//', $path)) {
     $filePath = __DIR__ . '/' . $path;
     if (file_exists($filePath)) {
@@ -85,4 +102,9 @@ if (preg_match('/^uploads\//', $path)) {
         readfile($filePath);
         exit;
     }
+}
+
+if (preg_match('/\.css$/', $path)) {
+    http_response_code(404);
+    exit;
 }
