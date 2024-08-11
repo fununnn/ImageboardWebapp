@@ -35,3 +35,50 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const createThreadForm = document.getElementById('create-thread-form');
+    const replyForm = document.getElementById('reply-form');
+
+    if (createThreadForm) {
+        createThreadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('/thread/create', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('スレッドが作成されました');
+                    window.location.href = '/threads';
+                } else {
+                    alert('スレッドの作成に失敗しました');
+                }
+            });
+        });
+    }
+
+    if (replyForm) {
+        replyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const threadId = this.action.split('/').pop();
+            
+            fetch(`/thread/reply/${threadId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('返信が投稿されました');
+                    location.reload();
+                } else {
+                    alert('返信の投稿に失敗しました');
+                }
+            });
+        });
+    }
+});

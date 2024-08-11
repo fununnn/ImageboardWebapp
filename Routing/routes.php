@@ -10,6 +10,8 @@ use Models\Snippets;
 use Models\Image;
 use Types\ValueType;
 use Database\DataAccess\Implementations\ComputerPartDAOImpl;
+use Database\DataAccess\Implementations\PostDAOImpl;
+use Models\Post;
 
 return [
     'random/part' => function(): HTTPRenderer {
@@ -190,7 +192,7 @@ return [
             $result = Image::delete($url);
             return new JSONRenderer($result);
         }
-        return new HTMLRenderer('error/405');
+        return new HTMLRenderer('error/404');
     },
         // routes.php の末尾に以下を追加
     '404' => function(): HTTPRenderer {
@@ -198,5 +200,92 @@ return [
     },
     '500' => function(): HTTPRenderer {
         return new HTMLRenderer('error/500');
+    },
+
+    'delete/part' => function(): HTTPRenderer {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            throw new Exception('Invalid request method!');
+        }
+
+        $id = ValidationHelper::integer($_POST['id'] ?? null);
+        if ($id === null) {
+            throw new Exception('ID is required!');
+        }
+
+        $partDao = new ComputerPartDAOImpl();
+        $success = $partDao->delete($id);
+
+        return new JSONRenderer(['success' => $success, 'message' => $success ? 'Part deleted successfully' : 'Failed to delete part']);
+    },
+
+    'parts/all' => function(): HTTPRenderer {
+        $page = ValidationHelper::integer($_GET['page'] ?? 1, 1);
+        $perPage = ValidationHelper::integer($_GET['perPage'] ?? 15, 1, 100);
+        
+        $offset = ($page - 1) * $perPage;
+        
+        $partDao = new ComputerPartDAOImpl();
+        $parts = $partDao->getAll($offset, $perPage);
+        
+        return new JSONRenderer(['parts' => array_map(function($part) { return $part->toArray(); }, $parts)]);
+    },
+
+    'parts/type' => function(): HTTPRenderer {
+        $type = $_GET['type'] ?? null;
+        if ($type === null) {
+            throw new Exception('Type is required!');
+        }
+        
+        $page = ValidationHelper::integer($_GET['page'] ?? 1, 1);
+        $perPage = ValidationHelper::integer($_GET['perPage'] ?? 15, 1, 100);
+        
+        $offset = ($page - 1) * $perPage;
+        
+        $partDao = new ComputerPartDAOImpl();
+        $parts = $partDao->getAllByType($type, $offset, $perPage);
+        
+        return new JSONRenderer(['parts' => array_map(function($part) { return $part->toArray(); }, $parts)]);
+    },
+
+    'threads' => function(): HTTPRenderer {
+        $postDao = new PostDAOImpl();
+        $threads = $postDao->getAllThreads(0, 20); // 最新20件のスレッドを取得
+        return new HTMLRenderer('thread/list', ['threads' => $threads]);
+    },
+
+    'thread/create' => function(): HTTPRenderer {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $postDao = new PostDAOImpl();
+            $post = new Post(
+                subject: $_POST['subject'] ?? '',
+                content: $_POST['content'] ?? ''
+            );
+            $success = $postDao->create($post);
+            return new JSONRenderer(['success' => $success]);
+        }
+        return new HTMLRenderer('thread/create');
+    },
+
+    'thread/view/{id}' => function(int $id): HTTPRenderer {
+        $postDao = new PostDAOImpl();
+        $thread = $postDao->getById($id);
+        if (!$thread) {
+            return new HTMLRenderer('error/404');
+        }
+        $replies = $postDao->getReplies($thread, 0, 100); // 最新100件の返信を取得
+        return new HTMLRenderer('thread/view', ['thread' => $thread, 'replies' => $replies]);
+    },
+
+    'thread/reply/{id}' => function(int $id): HTTPRenderer {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $postDao = new PostDAOImpl();
+            $post = new Post(
+                replyToId: $id,
+                content: $_POST['content'] ?? ''
+            );
+            $success = $postDao->create($post);
+            return new JSONRenderer(['success' => $success]);
+        }
+        return new HTMLRenderer('error/405'); // Method Not Allowed
     }
 ];
