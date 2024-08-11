@@ -253,17 +253,30 @@ return [
         return new HTMLRenderer('thread/list', ['threads' => $threads]);
     },
 
-    'thread/create' => function(): HTTPRenderer {
+    'thread/reply/{id}' => function(int $id): HTTPRenderer {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $postDao = new PostDAOImpl();
+            
+            $imagePath = null;
+            if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+                try {
+                    $imagePath = ValidationHelper::validateAndSaveImage($_FILES['image']);
+                    ValidationHelper::resizeImage($imagePath);
+                } catch (\Exception $e) {
+                    error_log('Image upload error: ' . $e->getMessage());
+                    return new JSONRenderer(['success' => false, 'error' => $e->getMessage()]);
+                }
+            }
+            
             $post = new Post(
-                subject: $_POST['subject'] ?? '',
-                content: $_POST['content'] ?? ''
+                replyToId: $id,
+                content: $_POST['content'] ?? '',
+                imagePath: $imagePath
             );
             $success = $postDao->create($post);
-            return new JSONRenderer(['success' => $success]);
+            return new JSONRenderer(['success' => $success, 'imagePath' => $imagePath]);
         }
-        return new HTMLRenderer('thread/create');
+        return new HTMLRenderer('error/405'); // Method Not Allowed
     },
 
     'thread/view/{id}' => function(int $id): HTTPRenderer {
@@ -276,16 +289,30 @@ return [
         return new HTMLRenderer('thread/view', ['thread' => $thread, 'replies' => $replies]);
     },
 
-    'thread/reply/{id}' => function(int $id): HTTPRenderer {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $postDao = new PostDAOImpl();
-            $post = new Post(
-                replyToId: $id,
-                content: $_POST['content'] ?? ''
-            );
-            $success = $postDao->create($post);
-            return new JSONRenderer(['success' => $success]);
+    'thread/create' => function(): HTTPRenderer {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $postDao = new PostDAOImpl();
+        
+        $imagePath = null;
+        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+            try {
+                $imagePath = ValidationHelper::validateAndSaveImage($_FILES['image']);
+                ValidationHelper::resizeImage($imagePath);
+            } catch (\Exception $e) {
+                error_log('Image upload error: ' . $e->getMessage());
+                return new JSONRenderer(['success' => false, 'error' => $e->getMessage()]);
+            }
         }
-        return new HTMLRenderer('error/405'); // Method Not Allowed
+        
+        $post = new Post(
+            subject: $_POST['subject'] ?? '',
+            content: $_POST['content'] ?? '',
+            imagePath: $imagePath
+        );
+        $success = $postDao->create($post);
+        return new JSONRenderer(['success' => $success, 'imagePath' => $imagePath]);
     }
+    return new HTMLRenderer('thread/create');
+},
+
 ];

@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('スレッドが作成されました');
                     window.location.href = '/threads';
                 } else {
-                    alert('スレッドの作成に失敗しました');
+                    alert(data.error || 'スレッドの作成に失敗しました');
                 }
             });
         });
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('返信が投稿されました');
                     location.reload();
                 } else {
-                    alert('返信の投稿に失敗しました');
+                    alert(data.error || '返信の投稿に失敗しました');
                 }
             });
         });

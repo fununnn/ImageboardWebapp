@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS Posts (
     reply_to_id INT,
     subject VARCHAR(255),
     content TEXT NOT NULL,
+    image_path VARCHAR(255),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (reply_to_id) REFERENCES Posts(post_id)

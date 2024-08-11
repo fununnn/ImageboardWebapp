@@ -4,45 +4,39 @@ use Types\ValueType;
 
 class ValidationHelper
 {
+    private const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+    private const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+    private const MAX_IMAGE_WIDTH = 5000;
+    private const MAX_IMAGE_HEIGHT = 5000;
+
     public static function integer($value, float $min = -INF, float $max = INF): int
     {
-        // PHPには、データを検証する組み込み関数があります。詳細は
-        // https://www.php.net/manual/en/filter.filters.validate.php を参照ください。
         $value = filter_var($value, FILTER_VALIDATE_INT, ["min_range" => (int) $min, "max_range"=>(int) $max]);
-        // 結果がfalseの場合、フィルターは失敗したことになります。
         if ($value === false) throw new \InvalidArgumentException("The provided value is not a valid integer.");
-        // 値がすべてのチェックをパスしたら、そのまま返します。
         return $value;
     }
 
     public static function validateImage($file)
     {
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        $maxSize = 5 * 1024 * 1024; // 5MB
-
         if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
             return ['valid' => false, 'error' => 'No file uploaded'];
         }
 
-        if (!in_array($file['type'], $allowedTypes)) {
+        if (!in_array($file['type'], self::ALLOWED_IMAGE_TYPES)) {
             return ['valid' => false, 'error' => 'Invalid file type. Allowed types are JPEG, PNG, and GIF'];
         }
 
-        if ($file['size'] > $maxSize) {
+        if ($file['size'] > self::MAX_IMAGE_SIZE) {
             return ['valid' => false, 'error' => 'File too large. Maximum size is 5MB'];
         }
 
-        // 画像の内容を確認
         $imageInfo = getimagesize($file['tmp_name']);
         if ($imageInfo === false) {
             return ['valid' => false, 'error' => 'Invalid image file'];
         }
 
-        // 追加のセキュリティチェック（例：画像の寸法制限）を行うことができます
-        $maxWidth = 5000;
-        $maxHeight = 5000;
-        if ($imageInfo[0] > $maxWidth || $imageInfo[1] > $maxHeight) {
-            return ['valid' => false, 'error' => "Image dimensions are too large. Maximum dimensions are {$maxWidth}x{$maxHeight} pixels"];
+        if ($imageInfo[0] > self::MAX_IMAGE_WIDTH || $imageInfo[1] > self::MAX_IMAGE_HEIGHT) {
+            return ['valid' => false, 'error' => "Image dimensions are too large. Maximum dimensions are " . self::MAX_IMAGE_WIDTH . "x" . self::MAX_IMAGE_HEIGHT . " pixels"];
         }
 
         return ['valid' => true];
@@ -50,9 +44,7 @@ class ValidationHelper
 
     public static function sanitizeFilename($filename)
     {
-        // ファイル名から危険な文字を取り除く
         $filename = preg_replace("/[^a-zA-Z0-9.-]/", "_", $filename);
-        // ファイル名の先頭のドットを取り除く（隠しファイル対策）
         $filename = ltrim($filename, '.');
         return $filename;
     }
@@ -101,7 +93,7 @@ class ValidationHelper
 
             $validatedValue = match ($type) {
                 ValueType::STRING => is_string($value) ? $value : throw new \InvalidArgumentException("The provided value is not a valid string."),
-                ValueType::INT => self::integer($value), // You can further customize this method if needed
+                ValueType::INT => self::integer($value),
                 ValueType::FLOAT => filter_var($value, FILTER_VALIDATE_FLOAT),
                 ValueType::DATE => self::validateDate($value),
                 default => throw new \InvalidArgumentException(sprintf("Invalid type for field: %s, with type %s", $field, $type)),
@@ -111,8 +103,75 @@ class ValidationHelper
                 throw new \InvalidArgumentException(sprintf("Invalid value for field: %s", $field));
             }
             $validatedData[$field] = $validatedValue;
-            }
+        }
 
-            return $validatedData;
+        return $validatedData;
+    }
+
+    public static function validateAndSaveImage(array $file): ?string
+    {
+        $validationResult = self::validateImage($file);
+        if (!$validationResult['valid']) {
+            throw new \Exception($validationResult['error']);
+        }
+
+        $uploadDir = __DIR__ . '/../uploads/';
+        if (!file_exists($uploadDir)) {
+            if (!mkdir($uploadDir, 0777, true)) {
+                throw new \Exception('Failed to create upload directory.');
+            }
+        }
+
+        $fileName = md5(uniqid()) . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filePath = $uploadDir . $fileName;
+
+        if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+            throw new \Exception('Failed to move uploaded file.');
+        }
+
+        return 'uploads/' . $fileName;
+    }
+
+    public static function resizeImage(string $filePath, int $maxWidth = 800, int $maxHeight = 600): bool
+    {
+        $fullFilePath = __DIR__ . '/../' . $filePath;
+        
+        if (!file_exists($fullFilePath)) {
+            throw new \Exception('Image file not found: ' . $fullFilePath);
+        }
+
+        list($width, $height, $type) = getimagesize($fullFilePath);
+
+        if ($width <= $maxWidth && $height <= $maxHeight) {
+            return true; // No need to resize
+        }
+
+        $ratio = min($maxWidth / $width, $maxHeight / $height);
+        $newWidth = round($width * $ratio);
+        $newHeight = round($height * $ratio);
+
+        $srcImage = imagecreatefromstring(file_get_contents($fullFilePath));
+        $dstImage = imagecreatetruecolor($newWidth, $newHeight);
+
+        imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                imagejpeg($dstImage, $fullFilePath, 90);
+                break;
+            case IMAGETYPE_PNG:
+                imagepng($dstImage, $fullFilePath, 9);
+                break;
+            case IMAGETYPE_GIF:
+                imagegif($dstImage, $fullFilePath);
+                break;
+            default:
+                return false;
+        }
+
+        imagedestroy($srcImage);
+        imagedestroy($dstImage);
+
+        return true;
     }
 }
