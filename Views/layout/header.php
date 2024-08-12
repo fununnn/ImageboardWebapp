@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs/editor/editor.main.min.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="../public/css/style.css">
     <style>
         body { padding-top: 60px; }
         .navbar { background-color: #f8f9fa; }
@@ -43,6 +43,6 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.30.1/min/vs/loader.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/app.js"></script>
+    <script src="../public/js/app.js"></script>
 </body>
 </html>
